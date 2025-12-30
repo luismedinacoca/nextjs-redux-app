@@ -1,4 +1,4 @@
-import CounterValue from "@/components/CounterValue";
+import CounterValue from "@/components/ui/CounterValue";
 import Link from "next/link";
 
 export default function Home() {

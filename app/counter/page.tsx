@@ -1,5 +1,5 @@
-import Counter from "@/components/Counter";
-import CounterValue from "@/components/CounterValue";
+import Counter from "@/components/ui/Counter";
+import CounterValue from "@/components/ui/CounterValue";
 
 const page = () => {
   return (
