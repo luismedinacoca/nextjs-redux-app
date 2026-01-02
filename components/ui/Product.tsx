@@ -1,9 +1,30 @@
+"use client";
 import { ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { Button } from "./button";
 import { Product as ProductType } from "@/types/types";
+import { addProductToCart } from "@/store/slices/cartSlice";
+import { useAppDispatch } from "@/store/hooks/hooks";
+import toast from "react-hot-toast";
 
 const Product = ({ product }: { product: ProductType }) => {
+  const dispatch = useAppDispatch();
+  const handleAdd = () => {
+    const newCartItem = {
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.images[0],
+    };
+
+    dispatch(addProductToCart(newCartItem));
+    toast.success(
+      <span>
+        Item: <strong>{product.title}</strong> added successfully!
+      </span>
+    );
+  };
+
   return (
     <div
       className="
@@ -39,7 +60,20 @@ const Product = ({ product }: { product: ProductType }) => {
 
       <p className="mt-2 font-bold text-sm text-gray-700">Price: ${product.price}</p>
 
-      <Button className="mt-4 flex items-center justify-center">
+      {/* <Button
+        onClick={() =>
+          dispatch(
+            addProductToCart({
+              id: product.id,
+              title: product.title,
+              price: product.price,
+              image: product.images[0],
+            })
+          )
+        }
+        className="mt-4 flex items-center justify-center"
+      > */}
+      <Button onClick={handleAdd} className="mt-4 flex items-center justify-center">
         <ShoppingBag className="w-4 h-4 mr-2" />
         <span>Add to Cart</span>
       </Button>
