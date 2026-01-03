@@ -1,13 +1,60 @@
 "use client";
-import { ShoppingBag } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check, ShoppingBag, Star } from "lucide-react";
 import Image from "next/image";
 import { Button } from "./button";
 import { Product as ProductType } from "@/types/types";
-import { addProductToCart } from "@/store/slices/cartSlice";
-import { useAppDispatch } from "@/store/hooks/hooks";
+import { addProductToCart, removeProductFromCart } from "@/store/slices/cartSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks/hooks";
 import toast from "react-hot-toast";
 
 const Product = ({ product }: { product: ProductType }) => {
+  const [existing, setExisting] = useState(false);
+  const cartItems = useAppSelector((state) => state.cart.cartItems);
+
+  const toastStyles = {
+    green: {
+      bg: "bg-green-100",
+      text: "text-green-600",
+    },
+    red: {
+      bg: "bg-red-100",
+      text: "text-red-600",
+    },
+  };
+
+  const CartToast = ({
+    title,
+    action,
+    icon,
+    color,
+  }: {
+    title: string;
+    action: string;
+    icon: React.ReactNode;
+    color: keyof typeof toastStyles;
+  }) => {
+    const styles = toastStyles[color];
+
+    return (
+      <div className="flex items-center gap-3">
+        <div className={`p-2 rounded-full ${styles.bg} ${styles.text}`}>{icon}</div>
+
+        <div>
+          <p className="font-semibold text-gray-900">{title}</p>
+          <p className="text-sm text-gray-500">
+            Item <span className={`italic font-bold ${styles.text}`}>{action}</span> successfully
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    // check if poroduct already exits in cart:
+    const isExisting = cartItems.some((item) => item.id === product.id);
+    setExisting(isExisting);
+  }, [cartItems, product.id]);
   const dispatch = useAppDispatch();
   const handleAdd = () => {
     const newCartItem = {
@@ -15,90 +62,91 @@ const Product = ({ product }: { product: ProductType }) => {
       title: product.title,
       price: product.price,
       image: product.images[0],
+      description: product.description,
     };
 
     dispatch(addProductToCart(newCartItem));
+    localStorage.setItem("cart", JSON.stringify([...cartItems, newCartItem]));
+    setExisting(true);
+    // toast.success(
+    //   <span>
+    //     Item:{" "}
+    //     <strong className="text-green-500 font-bold">
+    //       {product.title} <span className="italic">added</span>
+    //     </strong>{" "}
+    //     successfully!
+    //   </span>
+    // );
     toast.success(
-      <span>
-        Item: <strong>{product.title}</strong> added successfully!
-      </span>
+      <CartToast title={product.title} action="added to cart" color="green" icon={<ShoppingBag className="w-4 h-4" />} />
+    );
+  };
+
+  const handleRemove = (id: number) => {
+    dispatch(removeProductFromCart(product.id));
+    localStorage.setItem("cart", JSON.stringify(cartItems.filter((item) => item.id !== id)));
+    setExisting(false);
+    // toast.success(
+    //   <span>
+    //     Item:{" "}
+    //     <strong className="text-red-500 font-bold">
+    //       {product.title} <span className="italic">removed</span>
+    //     </strong>{" "}
+    //     from cart successfully!
+    //   </span>
+    // );
+    toast.success(
+      <CartToast title={product.title} action="removed from cart" color="red" icon={<ShoppingBag className="w-4 h-4" />} />
     );
   };
 
   return (
-    <div
-      className="
-        group
-        flex flex-col items-center justify-between
-        p-4
-        bg-[#F9DFDF]
-        border border-gray-200 rounded-xl
-        shadow-md
-        transition-colors
-        duration-1250
-        ease-in-out
-        hover:bg-[#BBE0EF]
-      "
-    >
-      <div className="overflow-hidden rounded-md">
+    <div className="w-full rounded-3xl bg-white shadow-lg p-4 transition-transform hover:-translate-y-1">
+      {/* Image */}
+      <div className="relative bg-gray-100 rounded-2xl p-4 flex items-center justify-center overflow-hidden">
+        <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+          <Star className="w-5 h-5" />
+        </button>
+
         <Image
-          className="
-            w-36 h-36 object-cover
-            transition-transform
-            duration-900
-            ease-in-out
-            group-hover:scale-110
-          "
-          width={300}
-          height={300}
           src={product.images?.[0] ?? "/macbook-14.png"}
           alt={product.title}
+          width={160}
+          height={160}
+          className="object-contain transition-transform duration-300 hover:scale-110"
         />
       </div>
 
-      <h3 className="mt-4 font-semibold text-xl text-center text-gray-900">{product.title}</h3>
+      {/* Content */}
+      <div className="mt-4 text-center">
+        <h3 className="font-semibold text-gray-900 truncate">{product.title}</h3>
 
-      <p className="mt-2 font-bold text-sm text-gray-700">Price: ${product.price}</p>
+        <p className="mt-1 text-sm text-gray-500 leading-snug line-clamp-2">{product.description}</p>
 
-      {/* <Button
-        onClick={() =>
-          dispatch(
-            addProductToCart({
-              id: product.id,
-              title: product.title,
-              price: product.price,
-              image: product.images[0],
-            })
-          )
-        }
-        className="mt-4 flex items-center justify-center"
-      > */}
-      <Button onClick={handleAdd} className="mt-4 flex items-center justify-center">
-        <ShoppingBag className="w-4 h-4 mr-2" />
-        <span>Add to Cart</span>
-      </Button>
+        <p className="mt-3 font-bold text-gray-900">${product.price}</p>
+
+        {/* Button inside card */}
+        {existing ? (
+          <Button
+            variant="destructive"
+            onClick={() => handleRemove(product.id!)}
+            className="mt-4 w-full rounded-full flex items-center justify-center text-xs min-[375px]:text-sm py-1.5 min-[375px]:py-2"
+          >
+            <ShoppingBag className="w-3 h-3 min-[375px]:w-4 min-[375px]:h-4 mr-1 min-[375px]:mr-2" />
+            Remove from cart
+          </Button>
+        ) : (
+          <Button
+            onClick={handleAdd}
+            className="mt-4 w-full rounded-full flex items-center justify-center bg-orange-400 hover:bg-orange-500 text-xs min-[375px]:text-sm py-1.5 min-[375px]:py-2"
+          >
+            <ShoppingBag className="w-3 h-3 min-[375px]:w-4 min-[375px]:h-4 mr-1 min-[375px]:mr-2" />
+            Add to cart
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Product;
-
-{
-  /*
-<div className="flex flex-col items-center justify-center ">
-      <Image
-        className="w-36 h-36 object-cover rounded"
-        width={300}
-        height={300}
-        src={product.images[0] ?? "/macbook-14.png"}
-        alt={product.title}
-      />
-      <h3 className="font-semibold text-xl">{product.title}</h3>
-      <p className="font-semibold text-sm py-2">Price: ${product.price}</p>
-      <Button>
-        <ShoppingBag className="w-4 h-4 mr-2" />
-        <span>Add to Cart</span>
-      </Button>
-    </div>
-*/
-}

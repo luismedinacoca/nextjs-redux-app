@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+//const initialCartItems = JSON.parse(localStorage.getItem("cart") || "[]");
 interface CartItem {
   id: number;
   title: string;
@@ -10,8 +11,20 @@ interface CartItem {
 interface CartState {
   cartItems: CartItem[];
 }
+const getInitialCartItems = (): CartItem[] => {
+  try {
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      return JSON.parse(storedCart);
+    }
+  } catch (error) {
+    console.error("Failed to parse cart items from local Storage", error);
+  }
+  return [];
+};
+
 const initialState: CartState = {
-  cartItems: [],
+  cartItems: getInitialCartItems(),
 };
 
 const cartSlice = createSlice({

@@ -236,3 +236,5 @@ Built with modern web development tools and best practices:
 - [Redux Toolkit Documentation](https://redux-toolkit.js.org/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [Shadcn UI](https://ui.shadcn.com/)
+- [📚 Complete Redux Toolkit in Next Js with Typescript – Nextra](https://desishub-docs.vercel.app/programming-tutorials/nextjs/redux#introduction)
+- [🎥 Next.js 14 with Redux Toolkit and TypeScript: Complete Guide with Examples](https://youtu.be/G6YoUlYrr9M)
